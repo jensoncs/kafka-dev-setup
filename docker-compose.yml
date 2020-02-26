@@ -1,0 +1,107 @@
+version: "3.1"
+services: 
+  zoo1: 
+    build: 
+      context: "."
+      dockerfile: ./Dockerfile
+    environment: 
+      ZOO_4LW_COMMANDS_WHITELIST: "*"
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: "server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181"
+      ZOO_STANDALONE_ENABLED: "false"
+    hostname: zoo1
+    ports: 
+      - "2191:2181"
+    restart: always
+  zoo2: 
+    build: 
+      context: "."
+      dockerfile: ./Dockerfile
+    environment: 
+      ZOO_4LW_COMMANDS_WHITELIST: "*"
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: "server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181"
+      ZOO_STANDALONE_ENABLED: "false"
+    hostname: zoo2
+    ports: 
+      - "2192:2181"
+    restart: always
+  zoo3: 
+    build: 
+      context: "."
+      dockerfile: ./Dockerfile
+    environment: 
+      ZOO_4LW_COMMANDS_WHITELIST: "*"
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: "server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181"
+      ZOO_STANDALONE_ENABLED: "false"
+    hostname: zoo3
+    ports: 
+      - "2193:2181"
+    restart: always
+
+  kafka1: 
+     depends_on: 
+       - zoo1
+       - zoo2
+       - zoo3
+     environment: 
+       KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka1:6667,PLAINTEXT_HOST://kafka1:6668"
+       KAFKA_CFG_BROKER_ID: 1
+       KAFKA_CFG_LISTENERS: "PLAINTEXT://:6667,PLAINTEXT_HOST://:6668"
+       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+       KAFKA_CFG_PORT: 6667
+       KAFKA_CFG_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+       ALLOW_PLAINTEXT_LISTENER: "yes"
+     hostname: kafka1
+     image: "bitnami/kafka:2.4.0"
+     ports: 
+       - "4448:6668"
+       - "4447:6667"
+  kafka2: 
+     depends_on: 
+       - zoo1
+       - zoo2
+       - zoo3
+     environment: 
+       KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka2:6667,PLAINTEXT_HOST://kafka2:6668"
+       KAFKA_CFG_BROKER_ID: 2
+       KAFKA_CFG_LISTENERS: "PLAINTEXT://:6667,PLAINTEXT_HOST://:6668"
+       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+       KAFKA_CFG_PORT: 6667
+       KAFKA_CFG_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+       ALLOW_PLAINTEXT_LISTENER: "yes"
+     hostname: kafka2
+     image: "bitnami/kafka:2.4.0"
+     ports: 
+       - "5558:6668"
+       - "5557:6667"
+  kafka3: 
+     depends_on: 
+       - zoo1
+       - zoo2
+       - zoo3
+     environment: 
+       KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka3:6667,PLAINTEXT_HOST://kafka3:6668"
+       KAFKA_CFG_BROKER_ID: 3
+       KAFKA_CFG_LISTENERS: "PLAINTEXT://:6667,PLAINTEXT_HOST://:6668"
+       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+       KAFKA_CFG_PORT: 6667
+       KAFKA_CFG_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+       ALLOW_PLAINTEXT_LISTENER: "yes"
+     hostname: kafka3
+     image: "bitnami/kafka:2.4.0"
+     ports: 
+       - "7778:6668"
+       - "7777:6667"
+
+  kafka_manager: 
+     depends_on: 
+       - zoo1
+       - zoo2
+       - zoo3
+     image: "sheepkiller/kafka-manager:latest"
+     environment:
+       ZK_HOSTS: "zoo1:2181,zoo2:2181,zoo3:2181"
+     ports: 
+       - "9000:9000"
